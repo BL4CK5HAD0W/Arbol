@@ -7,11 +7,11 @@
   <style>
     body { font-family: system-ui, sans-serif; background:#0f172a; color:#f1f5f9; padding:20px; }
     .card { background:#1e293b; border-radius:16px; padding:20px; box-shadow:0 10px 25px rgba(0,0,0,.3); max-width:800px; margin:auto; }
-    h1 { color:#f472b6; text-align:center; }
+    h1 { color:#60a5fa; text-align:center; }
     textarea { width:100%; min-height:220px; margin-top:12px; border-radius:12px; border:1px solid #334155; padding:12px; background:#0f172a; color:#f1f5f9; }
     .controls { display:flex; gap:10px; margin:16px 0; }
     button { padding:12px 16px; border:none; border-radius:12px; cursor:pointer; font-weight:600; }
-    #play { background:#f472b6; color:white; }
+    #play { background:#60a5fa; color:white; }
     #stop { background:#334155; color:white; }
   </style>
 </head>
@@ -27,23 +27,37 @@
 
   <script>
     const ta = document.getElementById('script');
-    ta.value = `Amor mío, quiero que cierres los ojos un instante y escuches con el corazón. 
-Quiero que sepas que creo en ti con todo lo que soy. 
-No importa lo difícil que parezca, estoy convencido de que lograrás cada cosa que te propongas, porque dentro de ti hay una fuerza y una luz que brillan más que cualquier obstáculo.
+    ta.value = `Amor mío, quiero que escuches esto de parte mía: 
+Creo en ti, en tu fuerza, en tu inteligencia y en todo lo que eres capaz de lograr. 
+Sé que a veces puede sentirse difícil, pero yo sé que serás la mejor, porque dentro de ti hay una grandeza que nadie puede detener.
 
-Eres increíble, eres capaz, y lo más hermoso es que no estás sola. 
-Estoy contigo, paso a paso, hombro a hombro, y nunca dejaré de recordarte lo maravillosa que eres. 
-
-Si alguna vez dudas de ti, toma mi voz y mis palabras como recordatorio de que confío plenamente en ti. 
-Sé que serás la mejor, porque ya lo eres, y cada día me lo demuestras. 
-
-Te amo, y siempre voy a estar aquí, apoyándote y celebrando cada victoria contigo.`;
+No estás sola, mi amor. Yo estoy contigo, siempre, apoyándote, alentándote y recordándote lo maravillosa que eres. 
+Si algún día dudas de ti misma, escucha estas palabras: yo confío en ti, hoy y siempre. 
+Y sé que lograrás cada meta, porque tienes un corazón imparable. 
+Te amo con todo lo que soy.`;
 
     let voices = [];
     const synth = window.speechSynthesis;
+
     function loadVoices(){
       voices = synth.getVoices();
+
+      // Intentar encontrar voz masculina en español
+      let maleVoice = voices.find(v =>
+        (/es[-_]?mx/i.test(v.lang) || /^es/i.test(v.lang)) &&
+        /Raul|Male|Man|Miguel|Diego/i.test(v.name)
+      );
+
+      // Si no encuentra, tomar la primera en español
+      if(!maleVoice){
+        maleVoice = voices.find(v => /es[-_]?mx/i.test(v.lang)) ||
+                    voices.find(v => /^es/i.test(v.lang));
+      }
+
+      // Guardar la voz seleccionada
+      window.selectedVoice = maleVoice;
     }
+
     loadVoices();
     if (speechSynthesis.onvoiceschanged !== undefined) {
       speechSynthesis.onvoiceschanged = loadVoices;
@@ -52,8 +66,12 @@ Te amo, y siempre voy a estar aquí, apoyándote y celebrando cada victoria cont
     function speak(){
       synth.cancel();
       const utter = new SpeechSynthesisUtterance(ta.value);
-      const v = voices.find(v => /es[-_]?mx/i.test(v.lang)) || voices.find(v => /^es/i.test(v.lang));
-      if(v) utter.voice = v;
+      if(window.selectedVoice){
+        utter.voice = window.selectedVoice;
+        utter.lang = window.selectedVoice.lang;
+      } else {
+        utter.lang = 'es-MX';
+      }
       utter.rate = 1;
       utter.pitch = 1;
       synth.speak(utter);
